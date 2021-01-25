@@ -3,9 +3,14 @@ WORKDIR /build
 COPY mvnw .
 COPY .mvn/wrapper .mvn/wrapper
 COPY pom.xml .
+# This is for windows to replace windows end of line by linux end of line
+RUN apt-get update && apt-get install -y dos2unix
+RUN dos2unix mvnw
 RUN ./mvnw dependency:go-offline
 COPY src/ src
-RUN ./mvnw package
+# This is for windows to replace windows end of line by linux end of line
+RUN ./mvnw spring-javaformat:apply
+RUN ./mvnw package -DskipTests
 
 FROM lpicanco/java11-alpine AS splitter
 WORKDIR /app
