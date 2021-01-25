@@ -30,6 +30,7 @@
     <wro4j.version>1.8.0</wro4j.version>
 
     <spring.version>5.0.6.RELEASE</spring.version>
+    <spring-format.version>0.0.25</spring-format.version>
   </properties>
 
   <dependencies>
@@ -146,6 +147,19 @@
 
   <build>
     <plugins>
+       <plugin>
+          <groupId>io.spring.javaformat</groupId>
+          <artifactId>spring-javaformat-maven-plugin</artifactId>
+          <version>${spring-format.version}</version>
+          <executions>
+            <execution>
+              <phase>validate</phase>
+              <goals>
+                <goal>validate</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
         <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>

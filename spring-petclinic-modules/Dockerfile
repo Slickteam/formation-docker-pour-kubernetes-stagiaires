@@ -1,4 +1,19 @@
-FROM panga/openjdk-alpine:11-jdk as builder
+FROM adoptopenjdk:11-jdk-hotspot AS builder
+WORKDIR /build
+COPY mvnw .
+COPY .mvn/wrapper .mvn/wrapper
+COPY pom.xml .
+# This is for windows to replace windows end of line by linux end of line
+RUN apt-get update && apt-get install -y dos2unix
+RUN dos2unix mvnw
+RUN ./mvnw dependency:go-offline
+COPY src/ src
+# This is for windows to replace windows end of line by linux end of line
+RUN ./mvnw spring-javaformat:apply
+RUN ./mvnw package -DskipTests
+
+
+FROM panga/openjdk-alpine:11-jdk as jre
 
 RUN jlink \
     --add-modules java.sql,java.naming,java.management,java.instrument,java.security.jgss,java.desktop,jdk.unsupported \
@@ -11,12 +26,12 @@ RUN jlink \
 
 FROM alpine:3.8
 
-COPY --from=builder /opt/jre-minimal /opt/jre-minimal
+COPY --from=jre /opt/jre-minimal /opt/jre-minimal
 
 ENV LANG=C.UTF-8 \
     PATH=${PATH}:/opt/jre-minimal/bin
 
-COPY target/modules /opt/app/modules
+COPY --from=builder /build/target/modules /opt/app/modules
 
 ARG JVM_OPTS
 ENV JVM_OPTS=${JVM_OPTS}
