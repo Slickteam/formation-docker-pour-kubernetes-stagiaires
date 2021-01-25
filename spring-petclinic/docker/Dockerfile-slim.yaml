@@ -1,0 +1,14 @@
+FROM adoptopenjdk:11-jdk-hotspot AS builder
+WORKDIR /build
+COPY mvnw .
+COPY .mvn/wrapper .mvn/wrapper
+COPY pom.xml .
+RUN ./mvnw dependency:go-offline
+COPY src/ src
+RUN ./mvnw package
+
+FROM openjdk:11-jre-slim
+WORKDIR /app
+COPY --from=builder /build/target/spring-petclinic-*jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","app.jar"]

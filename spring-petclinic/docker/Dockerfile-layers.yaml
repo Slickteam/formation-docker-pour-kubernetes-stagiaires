@@ -1,0 +1,23 @@
+FROM adoptopenjdk:11-jdk-hotspot AS builder
+WORKDIR /build
+COPY mvnw .
+COPY .mvn/wrapper .mvn/wrapper
+COPY pom.xml .
+RUN ./mvnw dependency:go-offline
+COPY src/ src
+RUN ./mvnw package
+
+FROM lpicanco/java11-alpine AS splitter
+WORKDIR /app
+COPY --from=builder /build/target/spring-petclinic-*jar app.jar
+RUN java -Djarmode=layertools  -jar app.jar extract
+RUN ls /app
+
+FROM lpicanco/java11-alpine
+WORKDIR /app
+COPY --from=splitter app/dependencies/ ./
+COPY --from=splitter app/spring-boot-loader/ ./
+COPY --from=splitter app/snapshot-dependencies/ ./
+COPY --from=splitter app/application/ ./
+EXPOSE 8080
+ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]

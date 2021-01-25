@@ -1,0 +1,9 @@
+FROM adoptopenjdk:11-jdk-hotspot
+WORKDIR /build
+COPY mvnw .
+COPY .mvn/wrapper .mvn/wrapper
+COPY pom.xml .
+RUN ./mvnw dependency:go-offline
+COPY src/ src
+RUN ./mvnw package
+ENTRYPOINT ["java","-jar","target/spring-petclinic-2.3.0.BUILD-SNAPSHOT.jar"]
